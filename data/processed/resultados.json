@@ -1,0 +1,87 @@
+{
+ "municipio": {
+  "1991": {
+   "idosos_sozinhos_pct": 12.33,
+   "dependencia_gt75_pct": 34.24,
+   "mulheres_chefes_pct": 7.47
+  },
+  "2000": {
+   "idosos_sozinhos_pct": 17.3,
+   "dependencia_gt75_pct": 31.57,
+   "mulheres_chefes_pct": 5.14
+  }
+ },
+ "rq1": {
+  "ras_aumento": 28,
+  "n_ras": 31,
+  "maior": [
+   "Ilha do Governador",
+   11.488041753558738
+  ],
+  "menor": [
+   "Santa Teresa",
+   -1.2396377400206013
+  ],
+  "mulheres_ras_queda": 30
+ },
+ "rq2": {
+  "menores_dep": [
+   [
+    "Centro",
+    22.5
+   ],
+   [
+    "Copacabana",
+    24.2
+   ],
+   [
+    "Lagoa",
+    24.3
+   ]
+  ],
+  "maiores_dep": [
+   [
+    "Campo Grande",
+    38.6
+   ],
+   [
+    "Complexo do Alemão",
+    38.0
+   ],
+   [
+    "Pavuna",
+    37.9
+   ]
+  ],
+  "maiores_idosos": [
+   [
+    "Centro",
+    33.3
+   ],
+   [
+    "Portuária",
+    26.6
+   ],
+   [
+    "Copacabana",
+    26.1
+   ]
+  ],
+  "razao_dep": 1.72
+ },
+ "rq3": {
+  "n": 125,
+  "rho_idosos_dep": [
+   -0.28,
+   0.0018
+  ],
+  "rho_mulheres_dep": [
+   0.78,
+   1.8e-26
+  ],
+  "rho_nivel91_delta": [
+   -0.37,
+   1.7e-05
+  ]
+ }
+}

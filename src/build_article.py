@@ -1,0 +1,206 @@
+"""Gera docs/index.html a partir de data/processed/resultados.json (números nunca digitados à mão)."""
+import json, re
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+r = json.loads((ROOT / "data/processed/resultados.json").read_text())
+m91, m00 = r["municipio"]["1991"], r["municipio"]["2000"]
+q1, q2, q3 = r["rq1"], r["rq2"], r["rq3"]
+f = lambda x: f"{x:.1f}".replace(".", ",")
+REPO = "https://github.com/bearce/vulnerabilidade-familiar-rj"
+
+resumo = (f"Este estudo analisa indicadores de vulnerabilidade da situação familiar no município do Rio de Janeiro "
+ f"a partir da Tabela 1179 do Armazém de Dados (IPP), com dados dos Censos de 1991 e 2000 por Região Administrativa (RA) e por bairro. "
+ f"Foi construído um pipeline determinístico em Python (pandas, SciPy e Matplotlib) para limpar as planilhas, "
+ f"harmonizar os níveis territoriais e calcular variações em pontos percentuais. Entre 1991 e 2000, o percentual de idosos morando sozinhos "
+ f"subiu de {f(m91['idosos_sozinhos_pct'])}% para {f(m00['idosos_sozinhos_pct'])}% no município, com aumento em {q1['ras_aumento']} das {q1['n_ras']} RAs, "
+ f"enquanto o de mulheres chefes de família sem cônjuge e com filhos pequenos caiu de {f(m91['mulheres_chefes_pct'])}% para {f(m00['mulheres_chefes_pct'])}%. "
+ f"Em 2000, a dependência familiar elevada variou {str(q2['razao_dep']).replace('.', ',')} vez entre a RA menos e a mais afetada, e nos bairros "
+ f"associou-se fortemente à chefia feminina (ρ = {str(q3['rho_mulheres_dep'][0]).replace('.', ',')}). "
+ f"Discutem-se limitações de comparabilidade entre censos e do desenho ecológico, e o repositório segue os princípios FAIR.")
+assert 150 <= len(resumo.split()) <= 250, len(resumo.split())
+
+def li(p): return f"<li>{p[0]} ({f(p[1])}%)</li>"
+html = f"""<!DOCTYPE html>
+<html lang="pt-BR"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Vulnerabilidade familiar no Rio de Janeiro, 1991–2000</title>
+
+    <meta name="description" content="Análise dos indicadores de vulnerabilidade da situação familiar no município do Rio de Janeiro (Censos 1991 e 2000).">
+
+    <link rel="stylesheet" href="style.css">
+</head><body><main>
+<header>
+<p class="meta">Bacharelado em Sistemas de Informação · 6º período · Linguagem de Programação (Análise e Visualização de Dados com Python) · Uni La Salle · 2026</p>
+<h1>Vulnerabilidade da situação familiar no município do Rio de Janeiro: mudanças entre os Censos de 1991 e 2000</h1>
+<p class="meta">Bernardo Teixeira de Oliveira Arce</p>
+<span class="badge">Python 3</span><span class="badge">pandas</span><span class="badge">FAIR</span><span class="badge">Código: MIT</span><span class="badge">Dados/Texto: CC-BY 4.0</span><br>
+<a class="btn" href="{REPO}">Repositório no GitHub →</a>
+</header>
+<h2>Resumo</h2><div class="abs"><p>{resumo}</p>
+<p class="kw"><strong>Palavras-chave:</strong> vulnerabilidade familiar; envelhecimento; Rio de Janeiro; Censo demográfico; ciência aberta.</p></div>
+<h2>1. Introdução</h2>
+<p>A composição das famílias é um dos principais determinantes da capacidade de uma população de cuidar de seus membros mais dependentes. Idosos que vivem sozinhos, famílias com muitas crianças e idosos por adulto em idade ativa e mulheres que criam filhos pequenos sem cônjuge são situações frequentemente associadas a maior exposição a riscos sociais. Mapear como esses indicadores se distribuem e se transformaram no território carioca ajuda a orientar políticas locais de assistência e cuidado.</p>
+<p>Este trabalho usa a Tabela 1179 do Armazém de Dados do Instituto Pereira Passos, que reúne três indicadores de vulnerabilidade da situação familiar para 1991 e 2000. Orientam a análise as seguintes perguntas de pesquisa:</p>
+<ul><li><span class="rq">RQ1.</span> Como evoluíram os três indicadores no município e nas RAs entre 1991 e 2000?</li>
+<li><span class="rq">RQ2.</span> Quais RAs concentravam, em 2000, os maiores e os menores níveis de dependência familiar e de idosos morando sozinhos?</li>
+<li><span class="rq">RQ3.</span> Como os indicadores se associam entre si nos bairros, e as unidades que partiam de níveis mais altos em 1991 variaram menos?</li></ul>
+
+<h2>2. Metodologia e Pipeline de Dados</h2>
+<p><strong>Fonte e granularidade.</strong> Os dados vêm da Tabela 1179 (Fundação João Pinheiro, convênio IPP/IUPERJ/IPEA, 2003), em arquivo <code>.xls</code> com cinco abas: definições, RAs em 1991 e 2000 e bairros em 1991 e 2000. Cada linha é uma unidade territorial e cada coluna é um percentual. Os três indicadores são: (i) pessoas de 65 anos ou mais morando sozinhas; (ii) pessoas em famílias com razão de dependência maior que 75%; (iii) mulheres chefes de família, sem cônjuge e com filhos menores de 15 anos.</p>
+<p><strong>Tratamento.</strong> As abas têm títulos e notas de rodapé misturados aos dados. O pipeline lê cada aba sem cabeçalho, converte as colunas para numérico (rodapés viram nulos e são descartados), padroniza nomes e códigos, empilha as quatro tabelas em um formato longo (<code>nivel, ano, codigo, nome</code>) e marca a linha agregada do município. Após o tratamento restaram 31 RAs e 125 bairros por ano, sem valores ausentes. Os bairros da fonte já vêm agrupados em alguns casos (por exemplo, "Botafogo, Urca"), e esses agrupamentos foram mantidos. O arquivo bruto nunca é alterado. A métrica derivada é a variação em pontos percentuais (2000 − 1991), calculada só para unidades presentes nos dois anos. O resultado é salvo em <code>.csv.gz</code>.</p>
+<pre><code>df["nome"] = df["nome"].astype(str).str.strip()
+for c in COLS:
+    df[c] = pd.to_numeric(df[c], errors="coerce")   # rodapés → NaN
+df = df.dropna(subset=COLS, how="all")              # remove notas e linhas vazias
+
+w = d.pivot_table(index="nome", columns="ano", values=COLS)
+delta = w[(c, 2000)] - w[(c, 1991)]                   # variação em p.p.</code></pre>
+<p>A associação entre indicadores foi medida pelo coeficiente de correlação de postos de Spearman (SciPy), adequado a distribuições assimétricas e a relações monotônicas.</p>
+
+<h2>3. Resultados e Discussão</h2>
+<h3>RQ1 — Evolução 1991–2000</h3>
+<figure><img src="assets/fig1_municipio.png" alt="Barras comparando os três indicadores no município em 1991 e 2000"><figcaption>Figura 1. Indicadores no município. Fonte: elaboração própria a partir da Tabela 1179 (IPP).</figcaption></figure>
+<p>O percentual de idosos morando sozinhos subiu de {f(m91['idosos_sozinhos_pct'])}% para {f(m00['idosos_sozinhos_pct'])}%. O percentual de pessoas em famílias com razão de dependência acima de 75% caiu de {f(m91['dependencia_gt75_pct'])}% para {f(m00['dependencia_gt75_pct'])}%, e o de mulheres chefes de família sem cônjuge e com filhos pequenos caiu de {f(m91['mulheres_chefes_pct'])}% para {f(m00['mulheres_chefes_pct'])}%. O aumento de idosos sozinhos ocorreu em {q1['ras_aumento']} das {q1['n_ras']} RAs, com o maior salto em {q1['maior'][0]} (+{f(q1['maior'][1])} p.p.) e a maior queda em {q1['menor'][0]} ({f(q1['menor'][1])} p.p.). A chefia feminina caiu em {q1['mulheres_ras_queda']} RAs.</p>
+<figure><img src="assets/fig2_variacao_ra.png" alt="Barras horizontais com a variação de idosos sozinhos por RA"><figcaption>Figura 2. Variação do percentual de idosos morando sozinhos por RA (p.p.).</figcaption></figure>
+<p>O padrão é compatível com o envelhecimento populacional e com a redução da fecundidade, que também ajudaria a explicar a queda da dependência por menos crianças por adulto. Isso é uma hipótese plausível, não demonstrada por estes dados. A queda da chefia feminina sem cônjuge vai contra a expectativa de muitos leitores e pode refletir mudanças de definição ou de captação entre os censos, o que os dados agregados não permitem verificar.</p>
+<h3>RQ2 — Onde se concentra a vulnerabilidade em 2000</h3>
+<figure><img src="assets/fig3_extremos_ra.png" alt="Cinco RAs de menor e cinco de maior dependência em 2000"><figcaption>Figura 3. RAs extremas em dependência familiar, 2000.</figcaption></figure>
+<p>A dependência elevada foi mais baixa em {', '.join(f'{n} ({f(v)}%)' for n, v in q2['menores_dep'])} e mais alta em {', '.join(f'{n} ({f(v)}%)' for n, v in q2['maiores_dep'])}, uma razão de {str(q2['razao_dep']).replace('.', ',')} vez entre extremos. O padrão oposto aparece nos idosos sozinhos, mais frequentes em {', '.join(f'{n} ({f(v)}%)' for n, v in q2['maiores_idosos'])}. Ou seja, as RAs mais centrais e de ocupação mais antiga concentram idosos sozinhos, e as periféricas concentram famílias com alta carga de dependentes. São duas faces diferentes da vulnerabilidade, o que sugere que um índice único as esconderia.</p>
+<h3>RQ3 — Associações entre indicadores nos bairros</h3>
+<figure><img src="assets/fig4_correlacao.png" alt="Dispersões entre dependência e os outros dois indicadores, bairros, 2000"><figcaption>Figura 4. Correlações entre indicadores nos bairros em 2000 (n = {q3['n']}).</figcaption></figure>
+<p>Em 2000, a dependência familiar elevada associou-se fortemente à chefia feminina (ρ = {q3['rho_mulheres_dep'][0]}) e de forma negativa e moderada aos idosos sozinhos (ρ = {q3['rho_idosos_dep'][0]}). Entre 1991 e 2000, os bairros que partiam de níveis mais altos de idosos sozinhos tiveram aumentos menores (ρ = {q3['rho_nivel91_delta'][0]}), sinal de convergência parcial, embora parte disso possa ser regressão à média.</p>
+
+<h2>4. Conclusão</h2>
+<p>Entre 1991 e 2000, o Rio de Janeiro viu crescer o isolamento domiciliar dos idosos enquanto recuavam a dependência e a chefia feminina com filhos pequenos. A geografia da vulnerabilidade tem dois polos distintos: um central, ligado ao envelhecimento, e outro periférico, ligado à dependência e à chefia feminina. <strong>Limitações:</strong> os dados são agregados (risco de falácia ecológica); as fronteiras e os agrupamentos de bairros podem ter mudado entre os censos; os bairros foram analisados em 2000 e a comparação temporal usa só unidades presentes nos dois anos; e os dados são antigos. <strong>Trabalhos futuros:</strong> incorporar o Censo 2010 e o de 2022, mapas coropléticos com malhas territoriais e modelos que controlem renda e escolaridade.</p>
+
+<h2>5. Disponibilidade dos Dados e Declaração FAIR</h2>
+<ul><li><strong>Findable:</strong> repositório com README, palavras-chave e link para a fonte original.</li><li><strong>Accessible:</strong> repositório público e artigo em GitHub Pages, sem credenciais.</li><li><strong>Interoperable:</strong> dicionário em <code>data/data_dictionary.md</code> e dados processados em <code>.csv.gz</code>.</li><li><strong>Reusable:</strong> licenças MIT (código) e CC-BY 4.0 (dados e texto) e dependências fixadas.</li></ul>
+<pre><code>git clone https://github.com/SEU-USUARIO/vulnerabilidade-familiar-rj.git
+cd vulnerabilidade-familiar-rj
+python -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -r requirements.txt
+python src/etl.py && python src/analysis.py && python src/build_article.py</code></pre>
+
+<h2>6. Referências</h2>
+<ul>
+<li>INSTITUTO PEREIRA PASSOS (IPP). <em>Armazém de Dados: Tabela 1179 – Indicadores de Vulnerabilidade – Situação Familiar</em>. Cálculos e tabulação: Fundação João Pinheiro (Convênio IPP, IUPERJ, IPEA), 2003. Rio de Janeiro: Prefeitura da Cidade do Rio de Janeiro.</li>
+<li>WILKINSON, M. D. et al. The FAIR Guiding Principles for scientific data management and stewardship. <em>Scientific Data</em>, v. 3, 160018, 2016.</li>
+<li>MCKINNEY, W. Data structures for statistical computing in Python. In: <em>Proceedings of the 9th Python in Science Conference</em>, 2010. p. 56–61.</li>
+<li>HUNTER, J. D. Matplotlib: a 2D graphics environment. <em>Computing in Science &amp; Engineering</em>, v. 9, n. 3, p. 90–95, 2007.</li>
+<li>VIRTANEN, P. et al. SciPy 1.0: fundamental algorithms for scientific computing in Python. <em>Nature Methods</em>, v. 17, p. 261–272, 2020.</li></ul>
+</main></body></html>"""
+(ROOT / "docs/index.html").write_text(html, encoding="utf-8")
+
+CSS = """:root {
+  --bg: #fff;
+  --fg: #1d2428;
+  --mut: #5b6770;
+  --ac: #0b6e4f;
+  --card: #f3f6f5;
+  --bd: #d9e0dd;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14191c;
+    --fg: #e6ebe9;
+    --mut: #9aa7a1;
+    --ac: #5fd0a5;
+    --card: #1d2428;
+    --bd: #2f3a3f;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.65 Georgia, 'Times New Roman', serif;
+}
+
+main {
+  max-width: 780px;
+  margin: auto;
+  padding: 2rem 1.1rem 4rem;
+}
+
+h1 {
+  font-size: 1.9rem;
+  line-height: 1.25;
+  margin: .2rem 0;
+}
+
+h2 {
+  margin-top: 2.2rem;
+  border-bottom: 1px solid var(--bd);
+  padding-bottom: .2rem;
+  font-size: 1.35rem;
+}
+
+.meta,
+figcaption,
+.kw {
+  color: var(--mut);
+  font-size: .9rem;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  padding: .1rem .7rem;
+  margin: .15rem .2rem .15rem 0;
+  font: 600 .78rem system-ui, sans-serif;
+}
+
+a.btn {
+  display: inline-block;
+  background: var(--ac);
+  color: #fff;
+  padding: .4rem .9rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font: 600 .9rem system-ui, sans-serif;
+  margin-top: .5rem;
+}
+
+.abs {
+  background: var(--card);
+  border-left: 4px solid var(--ac);
+  padding: .8rem 1.1rem;
+  border-radius: 4px;
+}
+
+figure {
+  margin: 1.5rem 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+pre {
+  background: var(--card);
+  padding: .9rem;
+  overflow-x: auto;
+  border-radius: 6px;
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+code {
+  font-family: ui-monospace, Menlo, monospace;
+}
+
+.rq {
+  font-weight: 600;
+}"""
+
+with open(ROOT / "docs/style.css", "w", encoding="utf-8", newline="\r\n") as fh:
+    fh.write(CSS)
+print("ok", len(resumo.split()), "palavras no resumo")

@@ -14,7 +14,7 @@
 <h1>Vulnerabilidade da situação familiar no município do Rio de Janeiro: mudanças entre os Censos de 1991 e 2000</h1>
 <p class="meta">Bernardo Teixeira de Oliveira Arce</p>
 <span class="badge">Python 3</span><span class="badge">pandas</span><span class="badge">FAIR</span><span class="badge">Código: MIT</span><span class="badge">Dados/Texto: CC-BY 4.0</span><br>
-<a class="btn" href="https://github.com/bearce/vulnerabilidade-familiar-rj">Repositório no GitHub →</a>
+<a class="btn" href="https://github.com/BernardoArce/vulnerabilidade-familiar-rj">Repositório no GitHub →</a>
 </header>
 <h2>Resumo</h2><div class="abs"><p>Este estudo analisa indicadores de vulnerabilidade da situação familiar no município do Rio de Janeiro a partir da Tabela 1179 do Armazém de Dados (IPP), com dados dos Censos de 1991 e 2000 por Região Administrativa (RA) e por bairro. Foi construído um pipeline determinístico em Python (pandas, SciPy e Matplotlib) para limpar as planilhas, harmonizar os níveis territoriais e calcular variações em pontos percentuais. Entre 1991 e 2000, o percentual de idosos morando sozinhos subiu de 12,3% para 17,3% no município, com aumento em 28 das 31 RAs, enquanto o de mulheres chefes de família sem cônjuge e com filhos pequenos caiu de 7,5% para 5,1%. Em 2000, a dependência familiar elevada variou 1,72 vez entre a RA menos e a mais afetada, e nos bairros associou-se fortemente à chefia feminina (ρ = 0,78). Discutem-se limitações de comparabilidade entre censos e do desenho ecológico, e o repositório segue os princípios FAIR.</p>
 <p class="kw"><strong>Palavras-chave:</strong> vulnerabilidade familiar; envelhecimento; Rio de Janeiro; Censo demográfico; ciência aberta.</p></div>
@@ -55,7 +55,7 @@ delta = w[(c, 2000)] - w[(c, 1991)]                   # variação em p.p.</code
 
 <h2>5. Disponibilidade dos Dados e Declaração FAIR</h2>
 <ul><li><strong>Findable:</strong> repositório com README, palavras-chave e link para a fonte original.</li><li><strong>Accessible:</strong> repositório público e artigo em GitHub Pages, sem credenciais.</li><li><strong>Interoperable:</strong> dicionário em <code>data/data_dictionary.md</code> e dados processados em <code>.csv.gz</code>.</li><li><strong>Reusable:</strong> licenças MIT (código) e CC-BY 4.0 (dados e texto) e dependências fixadas.</li></ul>
-<pre><code>git clone https://github.com/bearce/vulnerabilidade-familiar-rj.git
+<pre><code>git clone https://github.com/BernardoArce/vulnerabilidade-familiar-rj.git
 cd vulnerabilidade-familiar-rj
 python -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install -r requirements.txt

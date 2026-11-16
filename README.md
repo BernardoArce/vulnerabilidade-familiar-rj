@@ -1,8 +1,8 @@
 # Vulnerabilidade da situação familiar no Rio de Janeiro (Censos 1991 e 2000)
 
-Projeto final — Bacharelado em Sistemas de Informação, 6º período, *Linguagem de Programação (Análise e Visualização de Dados com Python)*.
+Projeto final — Bacharelado em Sistemas de Informação, 6º período, *Linguagem de Programação*.
 **Autores:** [Bernardo Teixeira de Oliveira Arce] · **Instituição:** [Uni La Salle] · **Semestre:** [2026.2]
-**Artigo (GitHub Pages):** https://bearce.github.io/vulnerabilidade-familiar-rj/
+**Artigo (GitHub Pages):** https://BernardoArce.github.io/vulnerabilidade-familiar-rj/
 
 ## Resumo executivo
 Análise de três indicadores de vulnerabilidade familiar (idosos morando sozinhos, dependência familiar elevada e mulheres chefes de família com filhos pequenos) por Região Administrativa e bairro do Rio de Janeiro em 1991 e 2000. Respondemos a três perguntas de pesquisa sobre evolução temporal, distribuição territorial e associação entre indicadores.

@@ -6,7 +6,7 @@ r = json.loads((ROOT / "data/processed/resultados.json").read_text())
 m91, m00 = r["municipio"]["1991"], r["municipio"]["2000"]
 q1, q2, q3 = r["rq1"], r["rq2"], r["rq3"]
 f = lambda x: f"{x:.1f}".replace(".", ",")
-REPO = "https://github.com/bearce/vulnerabilidade-familiar-rj"
+REPO = "https://github.com/BernardoArce/vulnerabilidade-familiar-rj"
 
 resumo = (f"Este estudo analisa indicadores de vulnerabilidade da situação familiar no município do Rio de Janeiro "
  f"a partir da Tabela 1179 do Armazém de Dados (IPP), com dados dos Censos de 1991 e 2000 por Região Administrativa (RA) e por bairro. "
@@ -77,7 +77,7 @@ delta = w[(c, 2000)] - w[(c, 1991)]                   # variação em p.p.</code
 
 <h2>5. Disponibilidade dos Dados e Declaração FAIR</h2>
 <ul><li><strong>Findable:</strong> repositório com README, palavras-chave e link para a fonte original.</li><li><strong>Accessible:</strong> repositório público e artigo em GitHub Pages, sem credenciais.</li><li><strong>Interoperable:</strong> dicionário em <code>data/data_dictionary.md</code> e dados processados em <code>.csv.gz</code>.</li><li><strong>Reusable:</strong> licenças MIT (código) e CC-BY 4.0 (dados e texto) e dependências fixadas.</li></ul>
-<pre><code>git clone https://github.com/SEU-USUARIO/vulnerabilidade-familiar-rj.git
+<pre><code>git clone https://github.com/BernardoArce/vulnerabilidade-familiar-rj.git
 cd vulnerabilidade-familiar-rj
 python -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install -r requirements.txt
